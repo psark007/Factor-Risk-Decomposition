@@ -1,0 +1,15 @@
+pandas
+numpy
+scipy
+scikit-learn
+matplotlib
+seaborn
+yfinance
+pandas-datareader
+joblib
+tqdm
+Pillow
+html5lib
+statsmodels
+requests
+torch

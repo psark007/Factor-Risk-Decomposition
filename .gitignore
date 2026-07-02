@@ -1,0 +1,11 @@
+data/raw/*
+data/processed/*
+images/*
+models/*
+*.npy
+*.pkl
+*.pth
+.ipynb_checkpoints/
+__pycache__/
+.DS_Store
+.venv/
