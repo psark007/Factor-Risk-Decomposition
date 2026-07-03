@@ -256,7 +256,7 @@ The long-only portfolio beats the EW universe by **3.6% per year**, though that 
 
 Portfolio risk is the quadratic form $w^\top \Sigma w$. This notebook decomposes it using the eigendecomposition of $\Sigma$.
 
-* **PCA from scratch** as eigendecomposition of the sample covariance, computed via SVD of the centered return matrix (a balanced panel of 394 stocks over 240 months).
+* **PCA via scikit-learn** (`PCA` from `sklearn.decomposition`), fit on the centered return matrix (a balanced panel of 394 stocks over 240 months). The linear-algebra content is the same eigendecomposition $\Sigma = V\Lambda V^\top$ — we now delegate the SVD-based solve to sklearn rather than rolling it by hand.
 * **Marchenko–Pastur cutoff** (random matrix theory): eigenvalues of a random covariance matrix fall inside $[\lambda_-, \lambda_+]$; eigenvalues above $\lambda_+$ are statistically significant factors. Here **9 eigenvalues** exceed the cutoff. PC1 explains 34% of variance and is essentially the market factor (correlation 0.96 with MKT-RF); PC2 loads on value (HML, 0.65).
 * **Ledoit–Wolf shrinkage** ($\hat\Sigma = \delta F + (1-\delta)S$) regularizes the noisy sample covariance; out-of-sample it lowers the Frobenius estimation error by ~5%.
 * **Variance decomposition:** splitting $\Sigma$ into the top-$k$ factor subspace and its orthogonal complement,
