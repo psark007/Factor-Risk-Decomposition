@@ -33,11 +33,11 @@ Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · *
 | Term | Linear-algebra meaning | Notebooks |
 |------|------------------------|:---------:|
 | **Return** | Fractional price change: $r_{t} = p_t / p_{t-1} - 1$ | 01 |
-| **Return panel** $\mathbf{R}$ | Matrix $\mathbf{R}\in\mathbb{R}^{T\times N}$: months (rows) × stocks (columns); sparse (NaN where a stock didn't trade yet) | 01–06 |
+| **Return panel** $\mathbf{R}$ | Matrix $\mathbf{R}\in\mathbb{R}^{T\times N}$: months (rows) $\times$ stocks (columns); sparse (NaN where a stock didn't trade yet) | 01–06 |
 | **Cross-section** | A row $r_t \in \mathbb{R}^{N_t}$ — all stock returns at one date $t$ | 01, 02, 03 |
 | **One stock's history** | A single column of $\mathbf{R}$ | 01 |
 | **Universe** | The set of columns we're allowed to hold — here the S&P 500 large-caps | 01 |
-| **Sector** | A categorical partition of the column index set (Technology, Financials, …); one-hot form → indicator matrix $\mathbf{D}$ | 01, 03 |
+| **Sector** | A categorical partition of the column index set (Technology, Financials, …); one-hot form $\rightarrow$ indicator matrix $\mathbf{D}$ | 01, 03 |
 | **Dispersion** | Cross-sectional std dev — the spread of returns across a row of $\mathbf{R}$ | 01, 06 |
 | **Equal-weight index** | Mean of a row: $\bar{r}_t = \tfrac{1}{N_t}\mathbf{1}^\top r_t$ (portfolio with $w_i = 1/N_t$) | 01, 04 |
 | **Survivorship bias** | Columns are a *non-random* sample: delisted/bankrupt names are missing, biasing returns upward | 01, 04 |
@@ -49,11 +49,11 @@ Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · *
 | **Factor / signal** | Vector $f_t \in \mathbb{R}^{N_t}$ — one score per stock; we ask whether $f_t$ predicts $r_{t+1}$ | 02, 03, 04 |
 | **Momentum (12-1)** | Trailing 12-month return skipping the last month — the headline signal; persistent drift | 02, 03, 04 |
 | **Value / Quality / Low-vol** | Other candidate factor vectors (proxied by price data here) | 02, 03 |
-| **Information coefficient (IC)** | Cosine similarity $\cos\theta = \dfrac{f_t^\top r_{t+1}}{\|f_t\|\,\|r_{t+1}\|}$ (ranks → Spearman IC) | 02, 03 |
+| **Information coefficient (IC)** | Cosine similarity $\cos\theta = \dfrac{f_t^\top r_{t+1}}{\|f_t\|\ \|r_{t+1}\|}$ (ranks $\rightarrow$ Spearman IC) | 02, 03 |
 | **Information ratio (IR)** | Mean IC / std(IC) — a signal-to-noise ratio for the factor | 02, 04 |
 | **Rank** | A permutation of $\{1,\dots,N\}$; makes factors comparable and robust to outliers | 02 |
 | **Walk-forward validation** | Split the sample into sub-windows and test stability of IC / performance across regimes | 02, 04 |
-| **Winsorize** | Clip extreme entries of $f$ at ±3σ to tame outliers | 03 |
+| **Winsorize** | Clip extreme entries of $f$ at $\pm 3\sigma$ to tame outliers | 03 |
 | **Z-score** | Center each cross-section to mean 0, std 1 | 03 |
 | **Sector neutralization** | Orthogonal projection $f_\perp = (I - P)f$ with $P = \mathbf{D}(\mathbf{D}^\top\mathbf{D})^{-1}\mathbf{D}^\top$ onto sector dummies | 03, 04 |
 | **Composite signal** | A linear combination $c_t = \sum_k w_k f_{k,\perp}$ of neutralized factor vectors | 03 |
@@ -182,7 +182,7 @@ We pull the current S&P 500 constituents and download adjusted close prices. Thi
 Key findings:
 * **Universe breadth** rises from ~385 to ~501 stocks over the sample — but the column set is fixed to *today's* constituents, so this counts how many of today's survivors had price data in month $t$. The matrix isn't truly "getting wider"; its survivor-only columns fill in over time.
 * Average monthly cross-sectional return dispersion ~7.5% (the spread across a row of $\mathbf{R}$).
-* Equal-weight universe Sharpe (rf=0) ≈ 0.98 over the full period.
+* Equal-weight universe Sharpe (rf=0) $\approx$ 0.98 over the full period.
 * Sector composition spans 11 GICS sectors, dominated by Technology, Financials, and Healthcare.
 
 ### 2. Factor Analysis and Diagnostics
@@ -214,9 +214,9 @@ Notebook 02 established momentum as the only factor with positive IC. This noteb
 3. **Sector-neutralizes** via orthogonal projection: $f_\perp = (\mathbf{I} - \mathbf{P})f$ with $\mathbf{P} = \mathbf{D}(\mathbf{D}^\top\mathbf{D})^{-1}\mathbf{D}^\top$
 4. **Compares** momentum-only vs. a 4-factor equal-weight composite
 
-Sector neutralization slightly improves momentum (IR 0.11 raw → 0.15 neutralized). Combining momentum with two negative-IC factors (value, lowvol) and one near-zero factor (quality) **dilutes** the signal — the 4-factor composite has negative IC. This is the linear-algebra intuition made empirical: adding vectors that point in the wrong direction moves the sum away from the target.
+Sector neutralization slightly improves momentum (IR 0.11 raw $\rightarrow$ 0.15 neutralized). Combining momentum with two negative-IC factors (value, lowvol) and one near-zero factor (quality) **dilutes** the signal — the 4-factor composite has negative IC. This is the linear-algebra intuition made empirical: adding vectors that point in the wrong direction moves the sum away from the target.
 
-**The headline signal is momentum-only, sector-neutralized** → saved as `momentum_signal.csv`. This is what the backtest trades.
+**The headline signal is momentum-only, sector-neutralized** $\rightarrow$ saved as `momentum_signal.csv`. This is what the backtest trades.
 
 ---
 
@@ -241,7 +241,7 @@ A portfolio is a weight vector $w$. We form a top-decile long-only portfolio at 
 | EW Universe | 15.9% | 0.95 | -47% | 1.27 |
 | Long-Short (net) | -0.7% | -0.04 | -70% | — |
 
-| Portfolio | FF 4-factor alpha (ann.) | t-stat | MKT β | MOM β |
+| Portfolio | FF 4-factor alpha (ann.) | t-stat | MKT $\beta$ | MOM $\beta$ |
 |-----------|-------------------------:|-------:|------:|------:|
 | **Long-Only** | **+5.95%** | **3.95** | 1.19 | 0.25 |
 | Long-Short | -2.95% | -1.41 | 0.15 | 0.91 |
@@ -295,7 +295,6 @@ The momentum long-only portfolio's risk is **~90.7% systematic** and **~9.3% idi
 * **No intraday execution modeling.** Transaction costs are a flat 5 bps. Real slippage depends on order size, liquidity, and volatility.
 * **Monthly rebalance only.** Daily/weekly rebalancing might capture different signals but would dramatically increase turnover.
 * **Momentum crash risk.** The 2006–2011 walk-forward window shows negative active return, driven by the 2008–09 momentum crash. A crash-protection overlay (e.g. volatility scaling) would improve robustness.
-* **Sector neutralization only.** A full Barra-style risk model would neutralize against more risk factors (size, beta, liquidity).
 
 ---
 
