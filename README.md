@@ -10,7 +10,7 @@ An end-to-end quant research pipeline — from raw price data to a backtested lo
 
 ## Contents
 
-1. [Finance $\leftrightarrow$ Linear Algebra Dictionary](#finance--linear-algebra-dictionary)
+1. [Finance ↔ Linear Algebra Dictionary](#finance--linear-algebra-dictionary)
 2. [Setup and Reproducibility](#setup-and-reproducibility)
 3. [Part I — Data and Factor Analysis (Notebooks 01–03)](#part-i--data-and-factor-analysis-notebooks-0103)
 4. [Part II — Backtest and Risk Decomposition (Notebooks 04–05)](#part-ii--backtest-and-risk-decomposition-notebooks-0405)
@@ -256,7 +256,7 @@ The long-only portfolio beats the EW universe by **3.6% per year**, though that 
 
 Portfolio risk is the quadratic form $w^\top \Sigma w$. This notebook decomposes it using the eigendecomposition of $\Sigma$.
 
-* **PCA via scikit-learn** (`PCA` from `sklearn.decomposition`), fit on the centered return matrix (a balanced panel of 394 stocks over 240 months). The linear-algebra content is the same eigendecomposition $\Sigma = V\Lambda V^\top$ — we now delegate the SVD-based solve to sklearn rather than rolling it by hand.
+* **PCA via scikit-learn** (`PCA` from `sklearn.decomposition`), fit on the centered return matrix (a balanced panel of 394 stocks over 240 months). The linear-algebra content is the same eigendecomposition $\Sigma = V\Lambda V^\top$.
 * **Marchenko–Pastur cutoff** (random matrix theory): eigenvalues of a random covariance matrix fall inside $[\lambda_-, \lambda_+]$; eigenvalues above $\lambda_+$ are statistically significant factors. Here **9 eigenvalues** exceed the cutoff. PC1 explains 34% of variance and is essentially the market factor (correlation 0.96 with MKT-RF); PC2 loads on value (HML, 0.65).
 * **Ledoit–Wolf shrinkage** ($\hat\Sigma = \delta F + (1-\delta)S$) regularizes the noisy sample covariance; out-of-sample it lowers the Frobenius estimation error by ~5%.
 * **Variance decomposition:** splitting $\Sigma$ into the top-$k$ factor subspace and its orthogonal complement,
@@ -273,15 +273,15 @@ The momentum long-only portfolio's risk is **~90.7% systematic** and **~9.3% idi
 
 | Metric | Long-Only (net) | EW Universe | Long-Short (net) |
 |--------|-----------------|-------------|------------------|
-| Annualized return | 19.6% | 15.9% | -0.7% |
-| Sharpe ratio | 1.01 | 0.95 | -0.04 |
-| Max drawdown | -57% | -47% | -70% |
-| FF 4-factor alpha (annualized) | **+5.95% (t = 3.95)** | — | -2.95% (t = -1.41) |
-| Active return vs EW universe | +3.6% (IR 0.43, t = 1.92) | — | — |
-| Walk-forward: Sharpe positive | 4 of 4 windows | — | — |
-| Walk-forward: active positive | 3 of 4 windows | — | — |
-| Survivorship drag to lose alpha | ~3% per year | — | — |
-| Systematic risk share | ~90.7% | — | — |
+| Annualized return [mean of the inner product $w^\top r_{t+1}$] | 19.6% | 15.9% | -0.7% |
+| Sharpe ratio [$\bar r_p / \mathrm{std}(r_p)$ — a signal-to-noise ratio] | 1.01 | 0.95 | -0.04 |
+| Max drawdown [largest peak-to-trough drop of the compounded wealth curve] | -57% | -47% | -70% |
+| FF 4-factor alpha (annualized) [orthogonal residual of the OLS projection onto the factor basis] | **+5.95% (t = 3.95)** | — | -2.95% (t = -1.41) |
+| Active return vs EW universe [$w^\top r$ minus its projection onto $\mathbf{1}$] | +3.6% (IR 0.43, t = 1.92) | — | — |
+| Walk-forward: Sharpe positive [positive signal-to-noise in each sub-window] | 4 of 4 windows | — | — |
+| Walk-forward: active positive [positive projection residual in each sub-window] | 3 of 4 windows | — | — |
+| Survivorship drag to lose alpha [bias from the non-random column set needed to cancel $\alpha$] | ~3% per year | — | — |
+| Systematic risk share [variance in the top-$k$ eigenspace, $w^\top B\Sigma_f B^\top w$, as a share of $w^\top \Sigma w$] | ~90.7% | — | — |
 
 **Bottom line:** a sector-neutralized momentum signal, traded long-only, generates a Fama–French 4-factor alpha of **5.95% annualized (t = 3.95)**, with a positive Sharpe in all four walk-forward windows and robustness to plausible survivorship bias. The long-short variant does not work — the edge is on the long side.
 
