@@ -1,0 +1,2 @@
+-r requirements-webapp.txt
+pytest==9.1.0

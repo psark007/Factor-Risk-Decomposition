@@ -1,15 +1,22 @@
-pandas
-numpy
-scipy
-scikit-learn
-matplotlib
-seaborn
-yfinance
-pandas-datareader
-joblib
-tqdm
-Pillow
-html5lib
-statsmodels
-requests
-torch
+# Full notebook/research environment.
+# For the dashboard-only runtime, use requirements-webapp.txt.
+pandas==2.3.3
+numpy==2.4.6
+scipy==1.16.2
+scikit-learn==1.8.0
+matplotlib==3.10.8
+seaborn==0.13.2
+yfinance==0.2.65
+pandas-datareader==0.11.1
+joblib==1.5.2
+tqdm==4.67.3
+Pillow==12.3.0
+html5lib==1.1
+statsmodels==0.14.6
+requests==2.33.1
+torch==2.10.0
+
+# Webapp dependencies are repeated here so a full install can run everything.
+fastapi==0.141.1
+uvicorn[standard]==0.52.0
+pydantic==2.13.4

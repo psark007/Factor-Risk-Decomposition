@@ -2,11 +2,7 @@
 
 *A quantitative pipeline, viewed through the lens of linear algebra.*
 
-An end-to-end quant research pipeline — from raw price data to a backtested long-only momentum portfolio with a Fama–French alpha, explicit risk decomposition, and (planned) synthetic stress testing. The target reader is someone fluent in linear algebra who wants to see how those tools show up in finance. Every concept is introduced first via its linear-algebra structure (matrices, vectors, projections, eigendecompositions, subspaces) and then named in finance terms.
-
-> **Status.** Notebooks **01–05** are complete and reproducible from this repo. Notebook **06** (synthetic markets / stress testing) is planned — see the todo at the end of Part II.
-
----
+An end-to-end quant research pipeline — from raw price data to a backtested long-only momentum portfolio with a Fama–French alpha, explicit risk decomposition, and synthetic stress testing. The target reader is someone fluent in linear algebra who wants to see how those tools show up in finance. Every concept is introduced first via its linear-algebra structure (matrices, vectors, projections, eigendecompositions, subspaces) and then named in finance terms.
 
 ## Contents
 
@@ -14,11 +10,12 @@ An end-to-end quant research pipeline — from raw price data to a backtested lo
 2. [Setup and Reproducibility](#setup-and-reproducibility)
 3. [Part I — Data and Factor Analysis (Notebooks 01–03)](#part-i--data-and-factor-analysis-notebooks-0103)
 4. [Part II — Backtest and Risk Decomposition (Notebooks 04–05)](#part-ii--backtest-and-risk-decomposition-notebooks-0405)
-5. [Results Summary](#results-summary)
-6. [Limitations](#limitations)
-7. [Tech Stack](#tech-stack)
+5. [Part III — Synthetic Markets and Stress Testing (Notebook 06)](#part-iii--synthetic-markets-and-stress-testing-notebook-06)
+6. [Results Summary](#results-summary)
+7. [Limitations](#limitations)
+8. [Webapp](#webapp)
+9. [Tech Stack](#tech-stack)
 
----
 
 ## Finance $\leftrightarrow$ Linear Algebra Dictionary
 
@@ -26,7 +23,7 @@ The single most useful thing to keep in mind: **a stock return panel is a matrix
 
 Each notebook opens with its own "Terms used in this notebook" table covering only what appears there. The project-wide reference, with the notebook(s) where each term appears, is below.
 
-Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · **03** Signal construction · **04** Backtest & performance · **05** Risk decomposition (PCA) · **06** Synthetic markets & stress testing (planned).
+Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · **03** Signal construction · **04** Backtest & performance · **05** Risk decomposition (PCA) · **06** Synthetic markets & stress testing.
 
 ### 1. The data object
 
@@ -65,8 +62,8 @@ Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · *
 | **Portfolio weights** $w$ | A vector; long-only: $w \ge 0,\ \sum w_i = 1$; long-short: $\sum w_i = 0$ | 04, 05 |
 | **Portfolio return** | Inner product $w^\top r_{t+1}$ | 04 |
 | **Portfolio variance** | Quadratic form $w^\top \Sigma w$ | 05 |
-| **Turnover** | $\ell_1$ distance $\|w_t - w_{t-1}\|_1$ — how much the weight vector changes between rebalances | 04 |
-| **Transaction cost** | $c \cdot \|w_t - w_{t-1}\|_1$ — proportional to turnover | 04 |
+| **Turnover** | One-way turnover $\tfrac{1}{2}\|w_t - w_{t-1}\|_1$ — how much the weight vector changes between rebalances | 04 |
+| **Transaction cost** | $c \cdot \tfrac{1}{2}\|w_t - w_{t-1}\|_1$ — proportional to one-way turnover | 04 |
 | **Backtest** | Replay history: form $w_t$ each month, accumulate $w_t^\top r_{t+1}$ net of costs | 04 |
 | **Sharpe / Sortino / Calmar** | Signal-to-noise ratios on portfolio returns (downside-only for Sortino; return/max-DD for Calmar) | 04 |
 | **Max drawdown** | Largest peak-to-trough drop of the equity curve | 04 |
@@ -86,7 +83,7 @@ Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · *
 | **Ledoit–Wolf shrinkage** | $\hat\Sigma = \delta F + (1-\delta)S$ — convex combination of sample $S$ and a structured target $F$ | 05 |
 | **Systematic / idiosyncratic risk** | Variance in the top-$k$ factor subspace vs. its orthogonal complement | 05 |
 
-### 5. Synthetic markets & stress testing (notebook 06, planned)
+### 5. Synthetic markets & stress testing (notebook 06)
 
 | Term | Linear-algebra meaning | Notebooks |
 |------|------------------------|:---------:|
@@ -101,18 +98,18 @@ Notebook numbering: **01** Data & market stats · **02** Factor diagnostics · *
 
 This project constructs and backtests a **sector-neutralized momentum factor** about ~500 US large-cap stocks (2005–2025) using only free data. The pipeline:
 
-> 1. **Assemble** a survivorship-aware universe and return panel (the matrix $\mathbf{R}$) from free price data
+> 1. **Assemble** a current-constituent, survivorship-biased universe and return panel (the matrix $\mathbf{R}$) from free/cached price data
 > 2. **Diagnose** four candidate factors via information coefficient analysis and walk-forward subperiod stability
 > 3. **Select** momentum as the headline factor (the only one with positive IC) and sector-neutralize it via orthogonal projection
 > 4. **Backtest** a monthly rebalanced top-decile long-only portfolio with transaction costs and walk-forward validation
 > 5. **Decompose** portfolio risk into systematic vs. idiosyncratic components via PCA (eigendecomposition + random matrix theory)
-> 6. **Stress test** *(planned, notebook 06)* by generating synthetic markets and re-running the backtest across alternative histories
+> 6. **Stress test** (notebook 06) by generating synthetic markets and re-running the backtest across alternative histories
 
-The project is structured in two parts (plus a planned third):
+The project is structured in three parts, all complete:
 
 * **Part I — Data and Factor Analysis** (notebooks 01–03) — *complete*
 * **Part II — Backtest and Risk Decomposition** (notebooks 04–05) — *complete*
-* **Part III — Synthetic Markets and Stress Testing** (notebook 06) — *planned* (todo, not yet written)
+* **Part III — Synthetic Markets and Stress Testing** (notebook 06) — *complete*
 
 ---
 
@@ -131,14 +128,15 @@ Factor-Risk-Decomposition/
 │   ├── 02_factor_diagnostics/
 │   ├── 03_factor_construction/
 │   ├── 04_backtest/
-│   └── 05_risk_decomposition/
+│   ├── 05_risk_decomposition/
+│   └── 06_synthetic_markets/
 └── notebooks/
     ├── 01_data_overview_and_market_stats.ipynb
     ├── 02_factor_analysis_and_diagnostics.ipynb
     ├── 03_factor_construction_and_composite_signal.ipynb
     ├── 04_backtest_and_performance.ipynb
     ├── 05_risk_decomposition_via_PCA.ipynb
-    └── 06_synthetic_market_generation.ipynb        (planned)
+    └── 06_synthetic_market_generation.ipynb
 ```
 
 ---
@@ -151,10 +149,16 @@ Factor-Risk-Decomposition/
 pip install -r requirements.txt
 ```
 
+For the dashboard-only runtime, install the smaller pinned set:
+
+```bash
+pip install -r requirements-webapp.txt
+```
+
 ### Data Sources (all free)
 
 - **Prices:** adjusted close via `yfinance` (2005–2025)
-- **Constituents:** current S&P 500 list from Wikipedia
+- **Constituents:** cached S&P 500 snapshot in `data/raw/constituents.csv`; set `REFRESH_DATA=true` before notebook 01 to intentionally replace it from Wikipedia
 - **Benchmark factors** (notebook 04): Kenneth French Data Library (MKT, SMB, HML, MOM, RF) via `pandas-datareader` — the standard "Fama–French" factors used to decompose returns into market, size, value, and momentum components
 
 No paid data feed is required to run the pipeline end-to-end.
@@ -164,10 +168,10 @@ No paid data feed is required to run the pipeline end-to-end.
 Run notebooks in order:
 
 ```text
-01 -> 02 -> 03 -> 04 -> 05  (06 planned)
+01 -> 02 -> 03 -> 04 -> 05 -> 06
 ```
 
-Each notebook writes to `data/processed/` and `images/`, so later notebooks pick up where earlier ones left off. Random state is fixed at `RANDOM_STATE = 3` throughout.
+Each notebook is self-contained and writes to `data/processed/` and `images/`, so later notebooks pick up where earlier ones left off. Random state is fixed at `RANDOM_STATE = 3` throughout. Generated CSVs are intentionally gitignored; rerun the notebooks to refresh them, and use `REFRESH_DATA=true` only when you want a new constituent snapshot.
 
 ---
 
@@ -177,7 +181,7 @@ This part builds the data matrix $\mathbf{R}$, diagnoses individual factor vecto
 
 ### 1. Data Overview and Market Statistics
 
-We pull the current S&P 500 constituents and download adjusted close prices. This introduces **survivorship bias** — names that went bankrupt or were delisted between 2005 and today won't appear. In linear-algebra terms: the columns of $\mathbf{R}$ are a non-random subset of all stocks that existed; the columns we *don't* see are exactly the ones that went to zero, biasing returns upward. Notebook 04 includes a sensitivity analysis for this.
+We use a cached snapshot of S&P 500 constituents and download adjusted close prices. Because that snapshot is still based on a modern S&P 500 membership list, it introduces **survivorship bias** — names that went bankrupt or were delisted between 2005 and today won't appear. In linear-algebra terms: the columns of $\mathbf{R}$ are a non-random subset of all stocks that existed; the columns we *don't* see are exactly the ones that went to zero, biasing returns upward. Notebook 04 includes a sensitivity analysis for this.
 
 Key findings:
 * **Universe breadth** rises from ~385 to ~501 stocks over the sample — but the column set is fixed to *today's* constituents, so this counts how many of today's survivors had price data in month $t$. The matrix isn't truly "getting wider"; its survivor-only columns fill in over time.
@@ -199,7 +203,7 @@ A **factor** is a vector $f_t \in \mathbb{R}^{N_t}$ — one score per stock at e
 The **information coefficient (IC)** is the Spearman rank correlation (cosine similarity of rank vectors) between $f_t$ and $r_{t+1}$. We also run **walk-forward subperiod IC analysis** over 5-year windows.
 
 Key findings (full-sample monthly IC):
-* **Momentum wins** — the only factor with positive IC: mean +0.006, IR 0.11. Value (-0.022), quality (-0.003, ~zero), and low-vol (-0.026) are all negative or flat; the price-based proxies don't capture the real factors.
+* **Momentum is the only usable signal in this setup** — mean IC +0.006, IR 0.11. That is weak in absolute terms; the point is not that this is an industry-grade factor, but that it is the only price-based proxy here worth carrying forward. Value (-0.022), quality (-0.003, ~zero), and low-vol (-0.026) are all negative or flat.
 * **Walk-forward:** momentum's IC is positive in **2 of 4** five-year windows (2011–16 and 2021–26); negative in 2006–11 and 2016–21. The signal is real but regime-dependent.
 * **IC decay:** momentum's edge fades beyond 1 month (negative at 3, 6, 12-month horizons).
 * **Turnover:** momentum rank autocorrelation ~0.89 (the vector rotates meaningfully each month).
@@ -230,27 +234,29 @@ A portfolio is a weight vector $w$. We form a top-decile long-only portfolio at 
 
 * **Signal at month-end $t$, traded at $t+1$** to avoid look-ahead bias
 * **Portfolio return** = $w^\top r_{t+1}$
-* **Transaction costs:** 5 bps round-trip, $c \cdot \|w_t - w_{t-1}\|_1$
+* **Transaction costs:** 5 bps per unit of one-way turnover, $c \cdot \tfrac{1}{2}\|w_t - w_{t-1}\|_1$
 * **Benchmark:** the **equal-weight (EW) universe** — since the portfolio is equal-weighted within the decile, the fair comparison is an equal-weight portfolio of *all* stocks, isolating stock-picking from the size effect.
 
-**Fama–French alpha:** an OLS projection of portfolio returns onto MKT/SMB/HML/MOM; the **alpha** is the orthogonal residual — returns *not explained* by exposure to known factors.
+**Fama–French alpha:** a regression of portfolio excess returns onto MKT/SMB/HML/MOM; the **alpha** is the intercept — average return not explained by exposure to those known factors. Notebook 04 reports both ordinary OLS t-stats and HAC/Newey-West t-stats.
 
 | Portfolio | Ann. Return | Sharpe | Max DD | Sortino |
 |-----------|------------:|-------:|-------:|--------:|
-| Long-Only (net) | 19.6% | 1.01 | -57% | 1.41 |
+| Long-Only (net) | 19.5% | 1.00 | -57% | 1.40 |
 | EW Universe | 15.9% | 0.95 | -47% | 1.27 |
 | Long-Short (net) | -0.7% | -0.04 | -70% | — |
 
-| Portfolio | FF 4-factor alpha (ann.) | t-stat | MKT $\beta$ | MOM $\beta$ |
-|-----------|-------------------------:|-------:|------:|------:|
-| **Long-Only** | **+5.95%** | **3.95** | 1.19 | 0.25 |
-| Long-Short | -2.95% | -1.41 | 0.15 | 0.91 |
+| Portfolio | FF 4-factor alpha (ann.) | OLS t-stat | HAC t-stat | MKT $\beta$ | MOM $\beta$ |
+|-----------|-------------------------:|-----------:|-----------:|------:|------:|
+| **Long-Only** | **+5.97%** | **3.98** | **4.17** | 1.19 | 0.25 |
+| Long-Short | -2.95% | -1.41 | -1.37 | 0.14 | 0.91 |
 
-The long-only portfolio beats the EW universe by **3.6% per year**, though that raw active edge is only marginal (IR 0.43, t = 1.92); the factor-adjusted alpha is the stronger result (+5.95%, t = 3.95). The long-short alpha is not significant — the short side adds noise, so momentum's predictive power is concentrated on the long side in this universe.
+The long-only portfolio beats the EW universe by **3.5% per year**, though that raw active edge is only marginal (IR 0.42, t = 1.89). After beta matching, the raw outperformance versus the equal-weight universe falls to about **0.5% per year**, so the factor-adjusted alpha is the stronger result. The long-short alpha is not significant — the short side adds noise, so momentum's predictive power is concentrated on the long side in this universe.
 
 **Walk-forward (5-year windows):** long-only Sharpe is positive in **4 of 4** windows; the active return (vs EW universe) is positive in **3 of 4**. The exception is 2006–2011 (active -4.8%), which spans the 2008–09 momentum crash — a well-documented regime where momentum reverses. Per-window information ratios: -0.51, 0.71, 0.82, 1.08, improving over the sample.
 
-**Survivorship-bias sensitivity:** re-running the Fama–French regression with a synthetic annual return drag, the alpha stays significant (t > 2) up to roughly **3%** annual drag from missing delisted stocks — well beyond the plausible bias for US large-caps.
+**Survivorship-bias sensitivity:** re-running the Fama–French regression with synthetic return drag, the alpha survives **2%** annual drag under both flat and crash-concentrated assumptions. At **3%**, the flat-drag test is borderline, while the crash-concentrated version loses significance.
+
+**Pipeline robustness:** notebook 04 now checks decile cutoffs of 5%, 10%, 15%, and 20%, plus 1-, 2-, and 3-month rebalance intervals. Across that grid, alpha remains positive and HAC-significant. This helps with parameter fragility, but does not solve the larger universe-construction limitation.
 
 ### 5. Risk Decomposition via PCA
 
@@ -263,9 +269,22 @@ Portfolio risk is the quadratic form $w^\top \Sigma w$. This notebook decomposes
 
 $$w^\top \Sigma w = \underbrace{w^\top \mathbf{B} \Sigma_f \mathbf{B}^\top w}_{\text{systematic}} + \underbrace{w^\top (\Sigma - \mathbf{B}\Sigma_f \mathbf{B}^\top) w}_{\text{idiosyncratic}}.$$
 
-The momentum long-only portfolio's risk is **~90.7% systematic** and **~9.3% idiosyncratic** — overwhelmingly driven by common factor exposures, consistent with a diversified ~50-stock top-decile portfolio. The Fama–French alpha of 5.95% (t = 3.95) from notebook 04 is precisely the component of return *orthogonal* to these systematic factors.
+The momentum long-only portfolio's risk is **~90.7% systematic** and **~9.3% idiosyncratic** — overwhelmingly driven by common factor exposures, consistent with a diversified ~50-stock top-decile portfolio. One caveat: the Fama–French alpha is orthogonal to the Fama–French benchmark factors, not literally to the PCA basis. These are related decompositions, but they are not the same coordinate system.
 
-> **Todo — notebook 06.** The natural next step is stress testing: build a synthetic market generator from the truncated-SVD factor structure ($\mathbf{R} \approx \mathbf{F}\mathbf{B}^\top + \mathbf{E}$) via block bootstrap and/or a conditional VAE, then re-run the momentum backtest across many alternative histories to ask whether the 5.95% alpha is genuine skill or luck. This notebook is planned but not yet written.
+---
+
+## Part III — Synthetic Markets and Stress Testing (Notebook 06)
+
+A single backtest is one draw from a distribution of possible histories. This part asks whether the alpha is unusually dependent on the specific historical ordering of months. We generate many synthetic markets from the notebook 05 factor model and re-run the momentum backtest on each.
+
+### 6. Synthetic Market Generation
+
+Reusing the truncated-SVD factor model $\mathbf{R} \approx \mathbf{F}\mathbf{B}^\top + \mathbf{E}$ (top-$k$ eigenvectors $\mathbf{B}$, factor scores $\mathbf{F}$, residuals $\mathbf{E}$, with $k$ estimated by Marchenko–Pastur), we generate alternative histories and re-derive the full momentum pipeline (signal $\rightarrow$ decile portfolio $\rightarrow$ Fama–French regression) on each.
+
+* **Block bootstrap — the trustworthy generator.** Resample time indices in blocks (length $\approx\sqrt{T}$) and reconstruct $\mathbf{R}_\text{synth}[t]=\mathbf{F}[\text{idx}_t]\mathbf{B}^\top+\mathbf{E}[\text{idx}_t]+\bar r$, using the **same** index for factors, residuals, *and* the Fama–French factors — so each synthetic timeline is a reshuffling of real joint return rows. Over 300 paths, the mean synthetic alpha $\approx$ 4.85%/yr and **~56% of paths beat the real 4.49%**. The real alpha sits near the median: it is **typical of the factor structure, not a lucky sequence**.
+* **Conditional VAE — a cautionary result.** An autoregressive VAE on $\mathbf{F}$ ($f_{t-1}\to(\mu,\sigma)\to z\to\hat f_t$) can generate factor paths, but reconstructing markets from a *generated* $\hat{\mathbf{F}}$ stitched to independently-resampled residuals **fabricates** return rows with spurious cross-sectional persistence — inflating momentum alphas to 10–25%. The lesson: a generative model that splits $\mathbf{R}=\mathbf{F}\mathbf{B}^\top+\mathbf{E}$ and regenerates the parts separately can inject the very signal under test, so we do **not** rely on it.
+
+**Honest scope.** Both generators hold $\mathbf{B}$ fixed and preserve the factor structure that *produces* the edge, so this tests **path dependence**, not "does momentum work without a momentum factor." Combined with notebook 04's walk-forward checks, HAC alpha, survivorship sensitivity, and robustness grid, the evidence is stronger than a single backtest — with the residual caveat that the bootstrap cannot rule out an unmodeled structural explanation.
 
 ---
 
@@ -273,34 +292,83 @@ The momentum long-only portfolio's risk is **~90.7% systematic** and **~9.3% idi
 
 | Metric | Long-Only (net) | EW Universe | Long-Short (net) |
 |--------|-----------------|-------------|------------------|
-| Annualized return [mean of the inner product $w^\top r_{t+1}$] | 19.6% | 15.9% | -0.7% |
+| Annualized return [mean of the inner product $w^\top r_{t+1}$] | 19.5% | 15.9% | -0.8% |
 | Sharpe ratio [$\bar r_p / \mathrm{std}(r_p)$ — a signal-to-noise ratio] | 1.01 | 0.95 | -0.04 |
 | Max drawdown [largest peak-to-trough drop of the compounded wealth curve] | -57% | -47% | -70% |
-| FF 4-factor alpha (annualized) [orthogonal residual of the OLS projection onto the factor basis] | **+5.95% (t = 3.95)** | — | -2.95% (t = -1.41) |
-| Active return vs EW universe [$w^\top r$ minus its projection onto $\mathbf{1}$] | +3.6% (IR 0.43, t = 1.92) | — | — |
+| FF 4-factor alpha (annualized) [regression intercept after controlling for FF factors] | **+5.97% (OLS t = 3.98, HAC t = 4.17)** | — | -2.95% (OLS t = -1.41, HAC t = -1.37) |
+| Active return vs EW universe [$w^\top r$ minus its projection onto $\mathbf{1}$] | +3.5% (IR 0.42, t = 1.89) | — | — |
 | Walk-forward: Sharpe positive [positive signal-to-noise in each sub-window] | 4 of 4 windows | — | — |
 | Walk-forward: active positive [positive projection residual in each sub-window] | 3 of 4 windows | — | — |
-| Survivorship drag to lose alpha [bias from the non-random column set needed to cancel $\alpha$] | ~3% per year | — | — |
+| Survivorship drag to lose alpha [bias from the non-random column set needed to cancel $\alpha$] | survives 2%; flat 3% borderline, concentrated 3% fails | — | — |
 | Systematic risk share [variance in the top-$k$ eigenspace, $w^\top B\Sigma_f B^\top w$, as a share of $w^\top \Sigma w$] | ~90.7% | — | — |
+| Stress test (block bootstrap) [share of 300 synthetic markets whose alpha $\ge$ the real alpha] | ~56% beat real $\rightarrow$ typical, not path-dependent | — | — |
 
-**Bottom line:** a sector-neutralized momentum signal, traded long-only, generates a Fama–French 4-factor alpha of **5.95% annualized (t = 3.95)**, with a positive Sharpe in all four walk-forward windows and robustness to plausible survivorship bias. The long-short variant does not work — the edge is on the long side.
+**Bottom line:** a sector-neutralized momentum signal, traded long-only, generates a Fama–French 4-factor alpha of **5.97% annualized** (OLS t = 3.98, HAC t = 4.17). The evidence is meaningfully better than a single backtest because it includes walk-forward checks, beta diagnostics, survivorship-drag stress tests, a decile/rebalance robustness grid, and synthetic-market path tests. The long-short variant does not work — the edge is on the long side.
 
 ---
 
 ## Limitations
 
-* **Survivorship bias.** The universe is reconstructed from the current S&P 500, so delisted/bankrupt names are missing. The sensitivity analysis (notebook 04) shows the alpha survives up to ~3% annual return drag — far more than the plausible bias for large-cap US equities. A survivorship-free database (CRSP) would eliminate this concern entirely.
+* **Survivorship bias.** The universe is reconstructed from a cached modern S&P 500 snapshot, so delisted/bankrupt names are missing. The sensitivity analysis (notebook 04) shows the alpha survives 2% annual return drag under flat and crash-concentrated assumptions; at 3%, the conclusion depends on the drag model. A survivorship-free database (CRSP) would eliminate this concern entirely.
 * **Price-based factor proxies.** Value and quality are proxied by price-based measures rather than fundamentals, and have negative/near-zero IC. A real implementation with Compustat/Sharadar fundamentals might produce a working multi-factor composite.
-* **Marginal raw active return.** The long-only portfolio beats the EW universe by only 3.6%/yr (t = 1.92); the statistically strong result is the *factor-adjusted* alpha (5.95%, t = 3.95), not the raw active return.
-* **No intraday execution modeling.** Transaction costs are a flat 5 bps. Real slippage depends on order size, liquidity, and volatility.
-* **Monthly rebalance only.** Daily/weekly rebalancing might capture different signals but would dramatically increase turnover.
+* **Marginal raw active return.** The long-only portfolio beats the EW universe by only 3.5%/yr (t = 1.89); the statistically strong result is the *factor-adjusted* alpha (5.97%, t = 3.98), not the raw active return.
+* **No intraday execution modeling.** Transaction costs are a flat 5 bps per unit of one-way turnover. Real slippage depends on order size, liquidity, and volatility.
+* **Limited rebalance grid.** Notebook 04 now checks 1-, 2-, and 3-month rebalance intervals, but does not model daily/weekly trading or alternate calendar-day execution.
 * **Momentum crash risk.** The 2006–2011 walk-forward window shows negative active return, driven by the 2008–09 momentum crash. A crash-protection overlay (e.g. volatility scaling) would improve robustness.
+* **Stress-test scope.** The synthetic-market bootstrap preserves the factor structure (the momentum PC lives in $\mathbf{F}$), so it tests **path dependence**, not "momentum without a momentum factor"; the conditional-VAE generator was found to inflate alphas (it fabricates cross-sectional persistence) and is not relied upon.
+
+---
+
+## Webapp
+
+An interactive dashboard in `webapp/` showcases the pipeline: a **FastAPI** backend + a single-page **Plotly.js** frontend themed to match the rest of the site. It consumes the precomputed CSVs in `data/processed/` and recomputes the light ML **once at startup** (PCA + Marchenko–Pastur cutoff, the Fama–French alpha, and the NB06 factor model for the live button), so the numbers always match the notebooks.
+
+Sections: **Strategy** (the trading rule, realized alpha, and short FF/t-stat explanation), **Generate** (a live block-bootstrap alpha generator), **Performance** (equity curves and drawdowns), **Factors** (IC bars, correlation heatmap, walk-forward), **Risk** (scree + MP cutoff, systematic/idiosyncratic split), **Ticker explorer** (PC1 vs PC2 loadings), and **Process** (the notebook-by-notebook research pipeline).
+
+### Run locally
+
+```bash
+pip install -r requirements-webapp.txt
+uvicorn webapp.app:app --host 127.0.0.1 --port 8055
+# open http://127.0.0.1:8055
+```
+
+Or with Docker (binds `127.0.0.1:8055`):
+
+```bash
+docker compose -f docker-compose.webapp.yml up --build
+```
+
+### Deploy behind Caddy
+
+The proxy compose only `expose`s its port on your existing `caddy` Docker network — no host port, so it coexists with other sites
+
+```bash
+docker compose -f docker-compose.webapp.proxy.yml up -d --build
+```
+
+Then add a Caddy site block reverse-proxying to the container:
+
+```caddy
+frd.example.com {
+    reverse_proxy factor-risk-decomposition-webapp:8055
+}
+```
+
+The data stays **mounted read-only** (`./data:/app/data`), mirroring the `.gitignore`. The app validates the required CSV artifacts at startup and tells you to run notebooks `01 -> 06` if anything is missing or malformed.
 
 ---
 
 ## Tech Stack
 
-Python, pandas, numpy, scipy, scikit-learn, statsmodels, matplotlib, seaborn, yfinance, pandas-datareader, joblib, torch. See `requirements.txt`.
+Python, pandas, numpy, scipy, scikit-learn, statsmodels, matplotlib, seaborn, yfinance, pandas-datareader, joblib, torch, FastAPI, Uvicorn. See `requirements.txt`, `requirements-webapp.txt`, and `requirements-dev.txt`.
+
+### Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+```
 
 ---
 

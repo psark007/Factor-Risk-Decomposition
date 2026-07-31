@@ -1,0 +1,9 @@
+# Dashboard runtime only. Notebook/data-generation dependencies live in requirements.txt.
+pandas==2.3.3
+numpy==2.4.6
+scipy==1.16.2
+scikit-learn==1.8.0
+statsmodels==0.14.6
+fastapi==0.141.1
+uvicorn[standard]==0.52.0
+pydantic==2.13.4

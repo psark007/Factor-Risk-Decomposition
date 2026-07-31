@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factor Risk Decomposition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Mono&display=swap">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/app.css?v=1" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Factor Risk Decomposition</p>
+      <h1>Sector-neutralized momentum from return matrix to alpha and risk</h1>
+      <p>Interactive research dashboard for factor diagnostics, PCA risk, and synthetic-market stress tests.</p>
+    </div>
+    <div id="health" class="health">Loading…</div>
+  </header>
+
+  <main class="dashboard">
+
+    <!-- ===================== HERO ===================== -->
+    <section id="hero" class="dashboard-section hero-section">
+      <h2>Trading strategy</h2>
+      <p class="section-blurb">Rank large-cap stocks by trailing 12-1 momentum, remove sector tilts, hold the top decile equal-weight, and rebalance monthly net of turnover costs.</p>
+      <div class="hero-card">
+        <div class="hero-main" id="hero-main"></div>
+        <div class="hero-action" id="hero-action"></div>
+      </div>
+      <div class="strategy-list">
+        <div><b>Signal</b><span>12-month momentum, skipping the most recent month.</span></div>
+        <div><b>Neutralization</b><span>Project out sector dummy exposure, then re-rank stocks.</span></div>
+        <div><b>Portfolio</b><span>Long-only, equal-weight top decile, monthly rebalance.</span></div>
+        <div><b>Costs</b><span>5 bps per unit of one-way turnover, including initial buy.</span></div>
+      </div>
+      <div class="explain-details">
+        <h3>Alpha and t-stat</h3>
+        <p>Alpha is the regression intercept: the average return left after subtracting exposure to benchmark factors. The t-statistic is alpha divided by its standard error; larger absolute values mean the estimate is less likely to be noise.</p>
+        <p>The four Fama-French factors used here are <b>MKT</b> (market excess return), <b>SMB</b> (Small Minus Big size factor), <b>HML</b> (High Minus Low value factor), and <b>MOM</b> (winner-minus-loser momentum factor).</p>
+      </div>
+    </section>
+
+    <!-- ===================== STRESS TEST ===================== -->
+    <section id="stress" class="dashboard-section">
+      <h2>Generate a new alpha</h2>
+      <p class="section-blurb">Draw an alternate market path from the factor model, re-run the momentum backtest, and see whether the generated alpha lands near the real one. A "Share ≥ real" near 50% is the ideal — it means the real alpha is typical, not a lucky outlier.</p>
+      <div class="metric-grid" id="stress-metrics"></div>
+      <div class="stress-controls">
+        <button id="stress-btn">Generate new alpha</button>
+        <span class="stress-readout" id="stress-readout"></span>
+      </div>
+      <p class="stress-note">Why is the baseline alpha here (~4.5%) lower than the headline 5.97% above? The stress test uses a <b>simplified pipeline</b> — raw 12-1 momentum with no sector neutralization and no transaction costs, run on the balanced PCA panel (~394 stocks) instead of the full universe. This keeps each bootstrap path fast enough to compute. The stress test answers the same question either way: is the alpha a lucky path? (No.)</p>
+      <div class="chart-grid two">
+        <div class="chart"><h3>Synthetic-market alpha distribution</h3><div id="chart-stress-dist"></div>
+          <aside class="chart-explain">
+            <h4>How to read this chart</h4>
+            <p>Each bar counts how many of the 300 synthetic markets produced an annualized FF 4-factor alpha in that range. The <b>gold vertical line</b> marks the <em>real</em> alpha from the actual historical return panel — this is your baseline. When you click <b>Generate</b>, a <b>coral dotted line</b> appears showing where that single fresh synthetic market landed.</p>
+            <p>If the gold line sits near the middle of the histogram, the real alpha is <b>typical</b> of what the factor structure produces — it's not a lucky outlier. If it sat far in the right tail (say, above 95% of paths), that would suggest the strategy only worked because of the particular sequence of months we lived through.</p>
+            <p>The distribution itself is centered near the real alpha (~4–5% annualized) because the factor loadings <b>B</b> are held fixed — the bootstrap is testing path order, not whether a momentum factor exists at all.</p>
+          </aside>
+        </div>
+        <div class="chart"><h3>Generated path — long-only equity curve</h3><div id="chart-stress-equity"></div>
+          <aside class="chart-explain">
+            <h4>How to read this chart</h4>
+            <p>This chart appears after you click <b>Generate</b>. It shows the <b>cumulative return</b> (compounded growth of $1) for the top-decile long-only momentum portfolio on a single synthetic market.</p>
+            <p><b>Cumulative return</b> means each point is (1 + r<sub>1</sub>)(1 + r<sub>2</sub>)...(1 + r<sub>t</sub>) − 1 — the total return from the start of the synthetic timeline to month t, including the compounding of all prior gains and losses. A value of +2.0 means the portfolio tripled the initial capital; −0.5 means half the capital was lost.</p>
+            <p>The x-axis label <b>"synthetic month"</b> is just a sequential month counter (1, 2, 3, …) rather than a calendar date — each synthetic market reshuffles real historical months into a new order, so there is no real date to anchor to. Month 1 is the first month of the reshuffled timeline, month 2 is the second, and so on for the full ~240-month span.</p>
+            <p>The <b>annotation at the top</b> reports three numbers for this path: its annualized FF alpha, its t-statistic, and what percentile it falls at within the precomputed distribution (0th = worst, 100th = best). Compare this to the gold line in the histogram — is this path better or worse than the real one?</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== OVERVIEW ===================== -->
+    <section id="overview" class="dashboard-section">
+      <h2>Performance — how did the portfolio do?</h2>
+      <p class="section-blurb">A top-decile long-only momentum portfolio, rebalanced monthly net of 5 bps per unit of one-way turnover. Benchmarked against the equal-weight universe.</p>
+      <div class="metric-grid" id="overview-metrics"></div>
+      <div class="chart-grid two">
+        <div class="chart"><h3>Equity curves (net of cost)</h3><div id="chart-equity"></div><p class="note">Long-only top decile vs the equal-weight universe (the fair benchmark) and the long-short book.</p></div>
+        <div class="chart"><h3>Long-only drawdown</h3><div id="chart-drawdown"></div><p class="note">Peak-to-trough drop of the compounded wealth curve.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== FACTORS ===================== -->
+    <section id="factors" class="dashboard-section">
+      <h2>Factor diagnostics — which signals predict next-month returns?</h2>
+      <p class="section-blurb">Information coefficient (IC) = Spearman rank correlation between the factor vector and next-month returns — the cosine of the angle between the rank vectors. Momentum is the only factor with positive IC.</p>
+      <div class="chart-grid two">
+        <div class="chart"><h3>Mean information coefficient by factor</h3><div id="chart-ic"></div><p class="note">Bars = mean monthly IC; momentum is the only positive-IC factor.</p></div>
+        <div class="chart"><h3>Cross-factor rank correlation (Gram matrix)</h3><div id="chart-corr"></div><p class="note">Momentum vs quality ≈ 0.86 — nearly collinear, redundant information.</p></div>
+      </div>
+      <div class="chart"><h3>Walk-forward IC (5-year windows)</h3><div id="chart-walkforward"></div><p class="note">Momentum IC by subperiod — regime-dependent; the 2006–11 window includes the 2008–09 crash.</p></div>
+    </section>
+
+    <!-- ===================== RISK ===================== -->
+    <section id="risk" class="dashboard-section">
+      <h2>Risk decomposition — where does the portfolio's variance live?</h2>
+      <p class="section-blurb">Eigendecompose the covariance Σ = VΛV<sup>T</sup>. Marchenko–Pastur (random matrix theory) separates signal eigenvalues from noise. Portfolio variance w<sup>T</sup>Σw splits into the top-k factor subspace (systematic) and its orthogonal complement (idiosyncratic).</p>
+      <div class="metric-grid" id="risk-metrics"></div>
+      <div class="chart-grid two">
+        <div class="chart"><h3>Eigenvalue scree + Marchenko–Pastur cutoff</h3><div id="chart-scree"></div><p class="note">Eigenvalues above λ<sub>+</sub> (dashed) are statistically significant factors; the rest is noise.</p></div>
+        <div class="chart"><h3>Systematic vs idiosyncratic risk</h3><div id="chart-vardecomp"></div><p class="note">Variance in the top-k eigenspace vs its orthogonal complement.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== TICKER EXPLORER ===================== -->
+    <section id="explorer" class="dashboard-section">
+      <h2>Ticker explorer — stocks in factor space</h2>
+      <p class="section-blurb">Each stock's loadings on PC1 (≈ the market factor) and PC2 (≈ value), colored by sector. Marker size = latest momentum score. Pick a ticker for its details.</p>
+      <div class="ticker-controls">
+        <label>Ticker
+          <select id="ticker-select"></select>
+        </label>
+      </div>
+      <div class="chart"><h3>PC1 vs PC2 loadings, colored by sector</h3><div id="chart-scatter"></div></div>
+      <div class="ticker-detail" id="ticker-detail">Select a ticker to see its momentum score, sector, and factor loadings.</div>
+    </section>
+
+    <!-- ===================== PROCESS ===================== -->
+    <section id="process" class="dashboard-section process-section">
+      <h2>Notebook process — what this project did</h2>
+      <p class="section-blurb">The app is a compact view of the notebook pipeline: build the return matrix, test factors, construct the signal, backtest it, decompose risk, then stress-test the alpha with synthetic markets.</p>
+      <div class="process-grid">
+        <article class="process-step"><b>01</b><h3>Build the return matrix</h3><p>Use cached S&P 500 constituent and adjusted-price data to assemble monthly returns, sectors, breadth, dispersion, and an equal-weight baseline.</p></article>
+        <article class="process-step"><b>02</b><h3>Diagnose factors</h3><p>Compute price-based momentum, value, quality, and low-volatility proxies; measure IC, decay, stability, turnover proxy, and cross-factor correlation.</p></article>
+        <article class="process-step"><b>03</b><h3>Construct the signal</h3><p>Winsorize, z-score, sector-neutralize, and compare momentum-only against a four-factor composite. Momentum-only is the cleaner signal.</p></article>
+        <article class="process-step"><b>04</b><h3>Backtest and challenge it</h3><p>Trade the top decile long-only, subtract turnover costs, run Fama-French alpha, HAC t-stats, beta checks, survivorship drag, and robustness grids.</p></article>
+        <article class="process-step"><b>05</b><h3>Decompose risk</h3><p>Estimate covariance, run PCA, use Marchenko-Pastur to choose signal factors, and split portfolio variance into systematic and idiosyncratic pieces.</p></article>
+        <article class="process-step"><b>06</b><h3>Synthesize markets</h3><p>Write <b>R ≈ F B<sup>T</sup> + E</b>, block-bootstrap matched rows of <b>F</b> and <b>E</b>, rebuild <b>R</b>, and rerun the strategy on alternate histories.</p></article>
+      </div>
+      <div class="explain-grid">
+        <article class="explain-details">
+          <h3>Synthetic panel construction</h3>
+          <p>The return matrix <b>R</b> is decomposed into factor scores <b>F</b>, stock loadings <b>B</b>, and residuals <b>E</b>. A synthetic path resamples matched rows of <b>F</b> and <b>E</b> in short blocks, then reconstructs <b>R</b><sub>synth</sub> = <b>F</b><sub>boot</sub><b>B</b><sup>T</sup> + <b>E</b><sub>boot</sub> + mean(r). Matching the rows matters because it keeps market-wide shocks and stock-specific shocks internally consistent.</p>
+        </article>
+        <article class="explain-details">
+          <h3>Heuristic picture</h3>
+          <p>Think of historical months as index cards. Instead of shuffling single cards, the bootstrap shuffles small packets of neighboring cards, so short regimes like selloffs, rebounds, and momentum bursts mostly stay intact. Each shuffled deck is an alternate market history; the app reruns the same strategy and records the alpha.</p>
+        </article>
+      </div>
+      <article class="links-card">
+        <h3>Links</h3>
+        <ul class="link-list">
+          <li><a href="https://pawelsarkowicz.xyz" target="_blank" rel="noreferrer">pawelsarkowicz.xyz</a></li>
+          <li><a href="https://github.com/psark007/Factor-Risk-Decomposition" target="_blank" rel="noreferrer">Factor Risk Decomposition repo</a></li>
+          <li><a href="https://github.com/psark007/Factor-Risk-Decomposition/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a></li>
+          <li><a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html" target="_blank" rel="noreferrer">Kenneth French Data Library</a></li>
+          <li><a href="https://github.com/ranaroussi/yfinance" target="_blank" rel="noreferrer">yfinance</a></li>
+        </ul>
+      </article>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>Educational project. Not investment advice.</span>
+    <span>Price data: Yahoo Finance / yfinance · Factor data: Kenneth French Data Library</span>
+  </footer>
+
+  <script src="/static/app.js?v=1"></script>
+</body>
+</html>

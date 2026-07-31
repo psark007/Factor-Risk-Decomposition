@@ -1,0 +1,14 @@
+services:
+  factor-risk-webapp:
+    build:
+      context: .
+      dockerfile: webapp/Dockerfile
+    container_name: factor-risk-webapp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8055:8055"
+    volumes:
+      # Data is mounted read-only (not baked in), matching the .gitignore and
+      # the ClimbingBoardGPT pattern. Re-run the notebooks to refresh these.
+      - ./data:/app/data:ro
+      - ./webapp:/app/webapp:ro

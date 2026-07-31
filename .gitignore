@@ -5,7 +5,12 @@ models/*
 *.npy
 *.pkl
 *.pth
+*.py[cod]
+*.bak
+.pytest_cache/
 .ipynb_checkpoints/
 __pycache__/
 .DS_Store
 .venv/
+Factor_Risk_Decomposition.txt
+flashcards*.txt

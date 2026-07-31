@@ -1,0 +1,22 @@
+# Production run behind Caddy. The container only `expose`s its port on the
+# shared `caddy` network (no host port), so it coexists with other sites.
+# Add a Caddy site block:  reverse_proxy factor-risk-decomposition-webapp:8055
+services:
+  factor-risk-webapp:
+    build:
+      context: .
+      dockerfile: webapp/Dockerfile
+    container_name: factor-risk-decomposition-webapp
+    restart: unless-stopped
+    expose:
+      - "8055"
+    volumes:
+      - ./data:/app/data:ro
+      - ./webapp:/app/webapp:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: caddy
