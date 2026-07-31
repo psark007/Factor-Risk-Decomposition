@@ -133,9 +133,25 @@ def form_decile_portfolios(
 
 
 def decile_long_returns(signal_df: pd.DataFrame, ret_df: pd.DataFrame, decile: float = 0.1) -> pd.Series:
-    """Top-decile equal-weight long-only monthly returns."""
-    port = form_decile_portfolios(signal_df, ret_df, decile=decile)
-    return port["long"] if "long" in port else pd.Series(dtype=float)
+    """Top-decile equal-weight long-only monthly returns (signal at t, return at t+1).
+
+    Vectorized for speed — the webapp's live stress-test button calls this once
+    per click. Ranks cross-sectionally per month, takes the top decile, and
+    averages next-month returns. (Semantically equivalent to the per-month loop
+    in ``form_decile_portfolios`` but without computing holdings/turnover.)
+    """
+    ranks = signal_df.rank(axis=1, pct=True)               # NaN stays NaN
+    rvals = ranks.values[:-1]                               # signal at t   (T-1, N)
+    next_ret = ret_df.values[1:]                            # return at t+1 (T-1, N)
+    with np.errstate(invalid="ignore", all="ignore"):
+        thr = np.nanquantile(rvals, 1 - decile, axis=1)     # per-row (1-decile) quantile of valid scores
+    top = (rvals >= thr[:, None]) & ~np.isnan(rvals)
+    valid = (~np.isnan(rvals)).sum(axis=1)
+    contrib = np.where(top, next_ret, np.nan)
+    with np.errstate(invalid="ignore"):
+        long_ret = np.nanmean(contrib, axis=1)
+    long_ret = np.where(valid >= 50, long_ret, np.nan)
+    return pd.Series(long_ret, index=np.arange(1, signal_df.shape[0]), dtype=float)
 
 
 def _is_datetime_like(index: pd.Index) -> bool:

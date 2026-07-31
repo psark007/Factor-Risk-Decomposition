@@ -23,7 +23,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from sklearn.decomposition import PCA
 
@@ -223,7 +223,7 @@ def _json_safe(o: Any) -> Any:
     return o
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def index():
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     css_v = _file_version(STATIC_DIR / "app.css")
@@ -231,6 +231,12 @@ def index():
     html = re.sub(r"app\.css\?v=[^\s\"']+", f"app.css?v={css_v}", html)
     html = re.sub(r"app\.js\?v=[^\s\"']+", f"app.js?v={js_v}", html)
     return HTMLResponse(content=html)
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots():
+    # Disallow crawling — this is an interactive demo, not a site to index.
+    return "User-agent: *\nDisallow: /\n"
 
 
 @app.get("/api/health")

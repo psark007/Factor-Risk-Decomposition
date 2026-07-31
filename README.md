@@ -105,11 +105,11 @@ This project constructs and backtests a **sector-neutralized momentum factor** a
 > 5. **Decompose** portfolio risk into systematic vs. idiosyncratic components via PCA (eigendecomposition + random matrix theory)
 > 6. **Stress test** (notebook 06) by generating synthetic markets and re-running the backtest across alternative histories
 
-The project is structured in three parts, all complete:
+The project is structured in three parts:
 
-* **Part I — Data and Factor Analysis** (notebooks 01–03) — *complete*
-* **Part II — Backtest and Risk Decomposition** (notebooks 04–05) — *complete*
-* **Part III — Synthetic Markets and Stress Testing** (notebook 06) — *complete*
+* **Part I — Data and Factor Analysis** (notebooks 01–03)
+* **Part II — Backtest and Risk Decomposition** (notebooks 04–05)
+* **Part III — Synthetic Markets and Stress Testing** (notebook 06)
 
 ---
 
@@ -181,7 +181,7 @@ This part builds the data matrix $\mathbf{R}$, diagnoses individual factor vecto
 
 ### 1. Data Overview and Market Statistics
 
-We use a cached snapshot of S&P 500 constituents and download adjusted close prices. Because that snapshot is still based on a modern S&P 500 membership list, it introduces **survivorship bias** — names that went bankrupt or were delisted between 2005 and today won't appear. In linear-algebra terms: the columns of $\mathbf{R}$ are a non-random subset of all stocks that existed; the columns we *don't* see are exactly the ones that went to zero, biasing returns upward. Notebook 04 includes a sensitivity analysis for this.
+We use a cached snapshot of S&P 500 constituents and download adjusted close prices. Because that snapshot is still based on a modern S&P 500 membership list, it introduces **survivorship bias** — names that went bankrupt or were delisted between 2005 and today won't appear. In linear-algebra terms: the columns of $\mathbf{R}$ are a non-random subset of all stocks that existed; the columns we *don't* see are exactly the ones that went to zero or got delisted, biasing returns upward. Notebook 04 includes a sensitivity analysis for this.
 
 Key findings:
 * **Universe breadth** rises from ~385 to ~501 stocks over the sample — but the column set is fixed to *today's* constituents, so this counts how many of today's survivors had price data in month $t$. The matrix isn't truly "getting wider"; its survivor-only columns fill in over time.
@@ -355,7 +355,7 @@ frd.example.com {
 }
 ```
 
-The data stays **mounted read-only** (`./data:/app/data`), mirroring the `.gitignore`. The app validates the required CSV artifacts at startup and tells you to run notebooks `01 -> 06` if anything is missing or malformed.
+The data stays **mounted read-only** (`./data:/app/data`). The app validates the required CSV artifacts at startup and tells you to run notebooks `01 -> 06` if anything is missing or malformed.
 
 ---
 
