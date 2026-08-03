@@ -1,4 +1,4 @@
-# Factor Risk Decomposition
+# Factor Risk Decomposition [![Live Demo](https://img.shields.io/badge/demo-webapp-teal)](https://frd.pawelsarkowicz.xyz)
 
 *A quantitative pipeline, viewed through the lens of linear algebra.*
 
